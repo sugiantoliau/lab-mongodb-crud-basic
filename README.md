@@ -144,8 +144,9 @@ db.languages.find({"type":"object oriented"},{"name":1})
 <br>
 
 The general syntax for updating multiple documents; the first object defines which documents to match, and the $set operator defines the specific fields to modify or add.
-
+```
 db.collection.updateMany({what documents to find},{$set:{what fields to set}})
+```
 
 Updates every document in the collection (since the filter {} is empty) to include a new field called "description" with the value "programming language".
 ```MongoDB Shell
