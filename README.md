@@ -23,10 +23,7 @@ Before you begin, ensure you have the following installed:
 To keep your database safe, never hardcode your password in your scripts. Use environment variables instead.
 
 1. Clone the repository
-   ```bash
-   git clone https://github.com/sugiantoliau/lab-mongodb-crud-operations.git
-   cd lab-mongodb-crud-operations
-
+  
 2. Set your Connection String
 Store your Atlas URI in an environment variable to keep your credentials out of your terminal history:
 
