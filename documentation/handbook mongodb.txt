@@ -1,0 +1,238 @@
+Handbook
+
+Displays the current MongoDB server version:
+
+db.version()
+
+
+
+Lists all existing databases on the server along with their storage sizes:
+
+show dbs
+show databases
+
+
+Switches the context to the training database, creating it automatically if it doesn't exist:
+
+use training
+
+
+Explicitly creates a new collection named languages within the active database.
+
+db.createCollection("languages")
+
+Lists all collections (the NoSQL equivalent of tables) available in the current database.
+show collections
+
+show tables
+
+
+db.languages.insert({"name":"java","type":"object oriented"})
+db.languages.insert({"name":"python","type":"general purpose"})
+db.languages.insert({"name":"scala","type":"functional"})
+db.languages.insert({"name":"c","type":"procedural"})
+db.languages.insert({"name":"c++","type":"object oriented"})
+
+db.languages.countDocuments()
+
+----------------------
+db.languages.findOne()
+
+db.languages.find()
+
+db.languages.find().limit(3)
+
+db.languages.find({"name":"python"})
+
+
+
+db.languages.find({},{"name":1})
+
+db.languages.find({},{"name":0})
+
+db.languages.find({"type":"object oriented"})
+
+
+
+----------------------
+db.collection.updateMany({what documents to find},{$set:{what fields to set}})
+
+db.languages.updateMany({},{$set:{"description":"programming language"}})
+
+db.languages.updateMany({"name":"python"},{$set:{"creator":"Guido van Rossum"}})
+
+db.languages.updateMany({"type":"object oriented"},{$set:{"compiled":true}})
+
+----------------------
+db.languages.remove({"name":"scala"})
+
+db.languages.remove({"type":"object oriented"})
+
+db.languages.remove({})
+
+------------------------------------------------------------------
+------------------------------------------------------------------
+Measure the time taken by a query
+
+db.bigdata.find({"account_no":58982}).explain("executionStats").executionStats.executionTimeMillis
+
+
+    
+db.bigdata.createIndex({"account_no":1})
+
+db.bigdata.getIndexes()
+
+db.bigdata.dropIndex({"account_no":1})
+
+------------------------------------------------------------------
+
+
+Using the $limit operator we can limit the number of documents printed in the output. This command will print only 2 documents from the marks collection.
+
+db.marks.aggregate([{"$limit":2}])
+----------------------
+
+This command sorts the documents based on field marks in ascending order.
+db.marks.aggregate([{"$sort":{"marks":1}}])
+
+----------------------
+This command sort the documents based on field marks in descending order.
+db.marks.aggregate([{"$sort":{"marks":-1}}])
+
+
+db.marks.aggregate([
+{"$sort":{"marks":-1}},
+{"$limit":2}
+])
+```	
+
+----------------------
+The operator $group by, along with operators like $sum, $avg, $min, $max, allows us to perform grouping operations.
+
+This aggregation pipeline prints the average marks across all subjects.
+
+```	
+
+db.marks.aggregate([
+{
+    "$group":{
+        "_id":"$subject",
+        "average":{"$avg":"$marks"}
+        }
+}
+])
+
+
+
+----------------------
+
+Now let us put together all the operators we have learnt to answer the question. "Who are the top 2 students by average marks?" This involves:
+
+finding the average marks per student.
+sorting the output based on average marks in descending order.
+limiting the output to two documents.
+
+
+
+db.marks.aggregate([
+{
+    "$group":{
+        "_id":"$name",
+        "average":{"$avg":"$marks"}
+        }
+},
+{
+    "$sort":{"average":-1}
+},
+{
+    "$limit":2
+}
+])
+
+
+------------------------------------------------------------------
+LAB Accessing MongoDB using Python
+
+
+Install the pymongo driver
+python3 -m pip install pymongo
+
+
+from pymongo import MongoClient
+user = 'root'
+password = 'MjQwOTgtcnNhbm5h' # CHANGE THIS TO THE PASSWORD YOU NOTED IN THE EARLIER EXCERCISE - 2
+host='mongo'
+#create the connection url
+connecturl = "mongodb://{}:{}@{}:27017/?authSource=admin".format(user,password,host)
+
+# connect to mongodb server
+print("Connecting to mongodb server")
+connection = MongoClient(connecturl)
+
+# select the 'training' database 
+
+db = connection.training
+
+# select the 'python' collection 
+
+collection = db.mongodb_glossary
+
+# create documents
+
+doc1 = {"database":"a database contains collections"}
+doc2 = {"collection":"a collection stores the documents"}
+doc3 = {"document":"a document contains the data in the form or key value pairs."}
+
+# insert documents
+print("Inserting documents into collection.")
+
+db.collection.insert_one(doc1)
+db.collection.insert_one(doc2)
+db.collection.insert_one(doc3)
+
+# query for all documents in 'training' database and 'python' collection
+
+docs = db.collection.find()
+
+print("Printing the documents in the collection.")
+
+for document in docs:
+    print(document)
+
+# close the server connecton
+print("Closing the connection.")
+connection.close()
+
+
+
+------------------------------------------------------------------
+
+You need the 'mongoimport' and 'mongoexport' tools to move data in and out of the mongodb database.
+
+wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu1804-x86_64-100.3.1.tgz
+tar -xf mongodb-database-tools-ubuntu1804-x86_64-100.3.1.tgz
+export PATH=$PATH:/home/project/mongodb-database-tools-ubuntu1804-x86_64-100.3.1/bin
+echo "done"
+
+----------------------
+mongoimport --version
+
+------------------------------------------------------------------
+MongoDB import/export data
+
+Import data in 'diamonds.json' into a collection named 'diamonds' and a database named 'training', replacing the password (the characters following -p: MzA2NDAtcnNhbm5h) with your own password.
+
+mongoimport -u root -p MzA2NDAtcnNhbm5h --authenticationDatabase admin --db training --collection diamonds --file diamonds.json --host mongo
+
+
+----------------------
+Export data from the 'training' database, 'diamonds' collection into a file named 'mongodb_exported_data.json'
+
+mongoexport -u root -p MzA2NDAtcnNhbm5h --authenticationDatabase admin --db training --collection diamonds --out mongodb_exported_data.json --host mongo
+
+
+----------------------
+Export the fields _id,clarity,cut,price from the 'training' database, 'diamonds' collection into a file named 'mongodb_exported_data.csv'
+
+
+mongoexport -u root -p MzA2NDAtcnNhbm5h --authenticationDatabase admin --db training --collection diamonds --out mongodb_exported_data.csv --type=csv --fields _id,clarity,cut,price --host mongo
